@@ -1,0 +1,57 @@
+{
+  "TRANSMISSION": [
+    {
+      "tablename": "138kvlines",
+      "geomcolumn": "geom",
+      "labelcolumn": "linename"
+    },
+    {
+      "tablename": "69kvlines",
+      "geomcolumn": "geom",
+      "labelcolumn": "linename"
+    }
+  ],
+  "DISTRIBUTION-LINES":[
+    {
+      "tablename": "overheadprimary",
+      "geomcolumn": "geom",
+      "labelcolumn": "linename",
+      "phasecolumn": "phasing",
+      "phasemap":{"ABC":"888","AB":"777","AC":"555","BC":"444","A":"333","B":"222","C":"111"}
+    },
+    {
+      "tablename": "undergroundprimary",
+      "geomcolumn": "geom",
+      "labelcolumn": "linename",
+      "phasecolumn": "phasing",
+      "phasemap":{"ABC":"888","AB":"777","AC":"555","BC":"444","A":"333","B":"222","C":"111"}
+    }
+    
+    ],
+ "DISTRIBUTION-POINTS":[
+    {
+      "tablename": "transformerbank",
+      "PKID":"",
+      "geomcolumn": "geom",
+      "labelcolumn": "dataid",
+      "phasecolumn": "phasing",
+      "phasemap":{"ABC":"888","AB":"777","AC":"555","BC":"444","A":"333","B":"222","C":"111"}
+    },
+    {
+      "tablename": "fusebank",
+      "geomcolumn": "geom",
+      "labelcolumn": "linename",
+      "phasecolumn": "phasing",
+      "phasemap":{"ABC":"888","AB":"777","AC":"555","BC":"444","A":"333","B":"222","C":"111"}
+    },
+    {
+      "tablename": "switchbank",
+      "geomcolumn": "geom",
+      "labelcolumn": "linename",
+      "phasecolumn": "phasing",
+      "phasemap":{"ABC":"888","AB":"777","AC":"555","BC":"444","A":"333","B":"222","C":"111"}
+    }
+    
+    
+    ]
+}
