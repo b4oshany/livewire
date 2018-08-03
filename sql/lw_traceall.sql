@@ -1,3 +1,5 @@
+/*    Gets the SRID of a livewire enabled schema    */
+
 CREATE OR REPLACE FUNCTION lw_traceall(
   lw_schema text
 	)
@@ -30,7 +32,7 @@ $lw_traceall$;
 
 CREATE OR REPLACE FUNCTION lw_traceall(
   lw_schema text,
-  truncate boolean,
+  truncate boolean
 	)
     RETURNS void
     LANGUAGE 'plpgsql'

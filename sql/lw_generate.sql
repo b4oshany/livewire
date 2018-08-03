@@ -1,3 +1,5 @@
+/*		Gets the SRID of a livewire enabled schema 		*/
+
 CREATE OR REPLACE FUNCTION lw_generate(
 	  lw_schema text
 	)

@@ -26,7 +26,7 @@ select lw_addnodeparticipant('gratis', $${
       "primarykey":"FacilityID",
       "geomcolumn": "geom",
       "sourcequery": "\"DeviceType\" = 'FDR'",
-      "blockquery": "\"Enabled\" = 0",
+      "blockquery": "0 =ANY (array[\"Enabled\",\"NormalPosA\",\"NormalPosB\",\"NormalPosC\"])",
       "phasecolumn": "PhasingCode",
       "phasemap":{"ABC":"7","AB":"6","AC":"5","BC":"3","A":"4","B":"2","C":"1"}
     }$$);
@@ -37,7 +37,7 @@ select lw_addnodeparticipant('gratis', $${
       "primarykey":"FacilityID",
       "geomcolumn": "geom",
       "sourcequery": "\"DeviceType\" = 'FDR'",
-      "blockquery": "\"Enabled\" = 0",
+      "blockquery": "0 =ANY (array[\"Enabled\",\"NormalPosA\",\"NormalPosB\",\"NormalPosC\"])",
       "phasecolumn": "PhasingCode",
       "phasemap":{"ABC":"7","AB":"6","AC":"5","BC":"3","A":"4","B":"2","C":"1"}
     }$$);

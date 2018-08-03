@@ -1,3 +1,5 @@
+/*    Gets the SRID of a livewire enabled schema    */
+
 create or replace function lw_redirect(
 
     lw_schema text,

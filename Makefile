@@ -1,5 +1,10 @@
-EXTENSION = livewire          # the extension name
-DATA	  = $(wildcard *.sql)
+EXTENSION 		= livewire          # the extension name
+
+
+DATA	  		= livewire--0.2.0.sql
+
+release: 
+	cat sql/*.sql > livewire--0.2.0.sql
 
 
 # Postgres build stuff

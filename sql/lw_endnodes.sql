@@ -1,3 +1,5 @@
+/*    Gets the SRID of a livewire enabled schema    */
+
 CREATE OR REPLACE FUNCTION lw_endnodes(
     in lw_schema text,
     out myarray bigint[]

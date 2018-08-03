@@ -1,3 +1,5 @@
+/*      Gets the SRID of a livewire enabled schema      */
+
 CREATE OR REPLACE FUNCTION lw_traceupstream(
     in lw_schema text,
 	in lw_id bigint,

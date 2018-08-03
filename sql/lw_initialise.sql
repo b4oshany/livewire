@@ -1,3 +1,5 @@
+/*      Creates schema and livewire base tables      */
+
 CREATE OR REPLACE FUNCTION lw_initialise(
 	lw_schema text,
 	lw_srid integer

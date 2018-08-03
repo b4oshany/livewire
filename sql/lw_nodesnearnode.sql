@@ -1,12 +1,14 @@
+/*    Gets the SRID of a livewire enabled schema    */
+
 CREATE OR REPLACE FUNCTION lw_nodesnearnode(
     in lw_schema text,
     in source bigint,
     in distance bigint,
     out myarray bigint[]
   )
-    LANGUAGE 'plpgsql'
+    LANGUAGE 'plpgsql' AS 
 
-AS $lw_nodesnearnode$
+$lw_nodesnearnode$
 
 DECLARE
   diaginfo bigint;
@@ -29,4 +31,4 @@ BEGIN
   execute(qrytxt,lw_schema, source, distance) into myarray;
 
 END;
-AS $lw_nodesnearnode$;
+$lw_nodesnearnode$;
