@@ -1,4 +1,4 @@
-/*    Gets the SRID of a livewire enabled schema    */
+/*    Initiate trace of all sources   */
 
 CREATE OR REPLACE FUNCTION lw_traceall(
   lw_schema text
@@ -15,8 +15,29 @@ AS $lw_traceall$
    looprec record;
 	 timer timestamptz;
 	 starttime timestamptz;
+   zerocount bigint;
   BEGIN
   starttime := clock_timestamp();
+
+
+  /*    Verify that this source cannot reach other sources....that would be bad   */
+  qrytxt := $_$
+    select count(*) from pgr_dijkstra(
+           $$select lw_id  id, source, target, st_length(g) * multiplier   as cost  
+           from %1$I.lines  $$,
+           (select lw_sourcenodes('%1$s'), 
+           (select lw_sourcenodes('%1$s'), 
+           false
+           )
+  $_$;
+  EXECUTE format(qrytxt,lw_schema) into zerocount; 
+  if zerocount > 0 THEN
+    raise exception 'Zerocount is not zero!!';
+  END IF;
+ 
+
+
+
   for looprec in EXECUTE(format($$select lw_id from %I.nodes where status = 'SOURCE'$$, lw_schema)) LOOP
   		RAISE NOTICE 'SOURCE: %', looprec.lw_id; 
 		  timer := clock_timestamp();
