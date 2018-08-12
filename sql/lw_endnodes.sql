@@ -1,4 +1,4 @@
-/*    Gets the SRID of a livewire enabled schema    */
+/*    Returns an array of lw_ids that correspond to endnodes    */
 
 CREATE OR REPLACE FUNCTION lw_endnodes(
     in lw_schema text,

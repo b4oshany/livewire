@@ -84,6 +84,18 @@ end if;
     )
   $_$;
 
+qrytxt:= $_$
+  select array_agg(lw_id) from (
+  select lw_id from %1$I.nodes
+  where status = 'BLOCK'
+  order by g <-> (
+      select st_collect(g)
+      from %1$I.lines where lw_id in (
+        select unnest(edges) from %1$I.livewire where nodes[1] =  %2$s
+        ))
+    limit 10) as foo$_$;
+
+
   execute format(qrytxt,lw_schema,source) into closeblocks;
 
   foreach closeblock in array closeblocks loop

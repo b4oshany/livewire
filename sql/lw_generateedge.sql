@@ -79,7 +79,7 @@ BEGIN
   );
   GET DIAGNOSTICS diaginfo = ROW_COUNT;
   IF diaginfo > 0 THEN
-    RAISE 'Geometry column has duplicate points';
+    RAISE 'Geometry column has duplicate points; Table %', tablename ;
   END IF;
   
   qrytxt := format($qrytxt$ 

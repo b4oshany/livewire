@@ -1,4 +1,4 @@
-/*    Gets the SRID of a livewire enabled schema    */
+/*    Returns an array of all nodes that block     */
 
 CREATE OR REPLACE FUNCTION lw_blocknodes(
     in lw_schema text,
