@@ -31,7 +31,7 @@ if checkzero = True THEN
       $$select lw_id  id, source, target, st_length(g) * multiplier as cost  
       from %1$I.lines  $$,
       %2$s, 
-      (select array_agg(lw_id) from %1$I.nodes where status = 'SOURCE'),
+      lw_sourcenodes(lw_schema) --select array_agg(lw_id) from %1$I.nodes where status = 'SOURCE'),
       false
     )
   $_$;
@@ -60,7 +60,7 @@ end if;
         	 $$,
         	 array[%2$s]::bigint[],
         	 (select lw_endnodes('%1$s',%2$s,%3$s)),
-        	 false
+        	 true
         	 )
         join %1$I.nodes on lw_id = node
         group by start_vid, end_vid
@@ -73,7 +73,7 @@ end if;
 
 
   /*    Find blocks within 20km of current extent of feeder. Trace from found blocks to source.   */
- 
+ /*
   qrytxt := $_$
     select array_agg(lw_id) from %1$I.nodes 
     where status = 'BLOCK' and g && (
@@ -117,7 +117,7 @@ qrytxt:= $_$
       group by start_vid, end_vid $_$;
     execute format(qrytxt,lw_schema,source, closeblock);
   END LOOP;
-
+*/
 
 
 
