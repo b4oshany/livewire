@@ -13,8 +13,8 @@ DECLARE
   qry text;
   
 BEGIN
-execute format('CREATE SCHEMA %I',lw_schema);
-execute format($$CREATE TABLE %I.lines
+-- execute format('CREATE SCHEMA %I',lw_schema);
+execute format($$CREATE TABLE %I.__lines
                 (
                     lw_table text,
                     lw_table_pkid text NOT NULL,
@@ -29,6 +29,7 @@ execute format($$CREATE TABLE %I.lines
                     z2 double precision,
                     multiplier bigint,
                     phase text,
+                    feederid text,
                     g geometry(LineStringZ,%L),
                     CONSTRAINT phase_check CHECK (phase = ANY (ARRAY['ABC'::text, 'AB'::text, 'AC'::text, 'BC'::text, 'A'::text, 'B'::text, 'C'::text]))
                 )
@@ -36,13 +37,14 @@ execute format($$CREATE TABLE %I.lines
                     OIDS = FALSE
                 )$$,
         lw_schema,lw_srid);
-execute format($$CREATE TABLE %I.nodes
+execute format($$CREATE TABLE %I.__nodes
                 (
                     lw_table text,
                     lw_table_pkid text NOT NULL,
                     lw_id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
                     status text,
                     phase text,
+		    feederid text,
                     g geometry(PointZ,%L),
                     CONSTRAINT phase_check CHECK (phase = ANY (ARRAY['ABC'::text, 'AB'::text, 'AC'::text, 'BC'::text, 'A'::text, 'B'::text, 'C'::text]))
                 )
@@ -50,7 +52,7 @@ execute format($$CREATE TABLE %I.nodes
                     OIDS = FALSE
                 )$$,
         lw_schema,lw_srid);
-execute format('CREATE TABLE %I.livewire
+execute format('CREATE TABLE %I.__livewire
                 (
                     nodes bigint[],
                     edges bigint[]
@@ -69,8 +71,8 @@ execute format('CREATE TABLE %I.%I
                     OIDS = FALSE
                 )',
         lw_schema,lw_schema);
-execute format('CREATE INDEX ON %I.lines USING gist (g)',lw_schema);
-execute format('CREATE INDEX ON %I.nodes USING gist (g)',lw_schema);
+execute format('CREATE INDEX ON %I.__lines USING gist (g)',lw_schema);
+execute format('CREATE INDEX ON %I.__nodes USING gist (g)',lw_schema);
 
 END;
 $lw_initialise$;

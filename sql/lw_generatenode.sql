@@ -120,7 +120,7 @@ BEGIN
   ni->'phasemap'->>'B', ni->'phasemap'->>'C', srid, ni->>'sourcequery',
   ni->>'blockquery');
    
-  EXECUTE format('INSERT INTO %I.nodes (lw_table, lw_table_pkid, status, phase,g) %s',
+  EXECUTE format('INSERT INTO %I.__nodes (lw_table, lw_table_pkid, status, phase,g) %s',
   lw_schema, qrytxt
   );
 

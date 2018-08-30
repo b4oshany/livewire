@@ -17,8 +17,8 @@ DECLARE
 BEGIN
 	
 	srid = lw_getsrid(lw_schema);  -- GET LW_SRID
-	EXECUTE format($$TRUNCATE %I.lines$$,lw_schema);
-	EXECUTE format($$TRUNCATE %I.nodes$$,lw_schema);
+	EXECUTE format($$TRUNCATE %I.__lines$$,lw_schema);
+	EXECUTE format($$TRUNCATE %I.__nodes$$,lw_schema);
 	
 	FOR looprec IN EXECUTE format('SELECT * from   %I.%I' , lw_schema,lw_schema) LOOP
 		IF looprec.tabletype = 'EDGE' THEN
@@ -45,9 +45,9 @@ BEGIN
 	
 		lw_schema,lw_schema,lw_schema, srid, lw_schema,srid);
 	
-	EXECUTE format('UPDATE %1$I.lines set source = nodes.lw_id from %1$I.nodes where st_dwithin(nodes.g, st_startpoint(lines.g),.001)',lw_schema);
-	EXECUTE format('UPDATE %1$I.lines set target = nodes.lw_id from %1$I.nodes where st_dwithin(nodes.g, st_endpoint(lines.g), .001)',lw_schema);
-	EXECUTE format($$UPDATE %1$I.lines set multiplier = -1 from %1$I.nodes where st_dwithin(nodes.g,lines.g,.001) and nodes.status = 'BLOCK'$$,lw_schema);
+	EXECUTE format('UPDATE %1$I.__lines l set source = n.lw_id from %1$I.__nodes n where st_equals(n.g, st_startpoint(l.g))',lw_schema);
+	EXECUTE format('UPDATE %1$I.__lines l set target = n.lw_id from %1$I.__nodes n where st_equals(nodes.g, st_endpoint(l.g))',lw_schema);
+	EXECUTE format($$UPDATE %1$I.__lines set multiplier = -1 from %1$I.__nodes where st_intersetcs(nodes.g,lines.g) and nodes.status = 'BLOCK'$$,lw_schema);
 	
 
 END;

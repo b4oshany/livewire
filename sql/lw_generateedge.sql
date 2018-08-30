@@ -54,6 +54,17 @@ BEGIN
     RAISE 'phase column does not exist';
   END IF;
 
+  /*    check that feederid column exists    */
+  PERFORM * from pg_catalog.pg_attribute pa
+    JOIN pg_catalog.pg_type pt on pa.atttypid = pt.oid
+    JOIN pg_catalog.pg_class pc on attrelid = pc.oid
+    JOIN pg_catalog.pg_namespace pn on relnamespace = pn.oid
+    WHERE nspname = ei->>'schemaname'
+    and relname = ei->>'tablename' and attname = ei->>'feederid';
+  IF NOT FOUND THEN
+    RAISE 'feederid column does not exist';
+  END IF;
+
   /*    Check that config info has the correct phase keys   */
   PERFORM count(*) from json_each_text(ei->'phasemap')
     where key in ('ABC','AB','AC','BC','A','B','C') and value is not null
@@ -119,7 +130,7 @@ BEGIN
   
 
 EXECUTE format(
-  'INSERT INTO %I.lines (lw_table, lw_table_pkid,x1,y1,z1,x2,y2,z2,multiplier,phase,g) %s',
+  'INSERT INTO %I.__lines (lw_table, lw_table_pkid,x1,y1,z1,x2,y2,z2,multiplier,phase,g) %s',
   lw_schema,qrytxt
   );
 

@@ -183,8 +183,8 @@ DECLARE
 BEGIN
 	
 	srid = lw_getsrid(lw_schema);  -- GET LW_SRID
-	EXECUTE format($$TRUNCATE %I.lines$$,lw_schema);
-	EXECUTE format($$TRUNCATE %I.nodes$$,lw_schema);
+	EXECUTE format($$TRUNCATE %I.__lines$$,lw_schema);
+	EXECUTE format($$TRUNCATE %I.__nodes$$,lw_schema);
 	
 	FOR looprec IN EXECUTE format('SELECT * from   %I.%I' , lw_schema,lw_schema) LOOP
 		IF looprec.tabletype = 'EDGE' THEN
@@ -211,13 +211,14 @@ BEGIN
 	
 		lw_schema,lw_schema,lw_schema, srid, lw_schema,srid);
 	
-	EXECUTE format('UPDATE %1$I.lines set source = nodes.lw_id from %1$I.nodes where st_dwithin(nodes.g, st_startpoint(lines.g),.001)',lw_schema);
-	EXECUTE format('UPDATE %1$I.lines set target = nodes.lw_id from %1$I.nodes where st_dwithin(nodes.g, st_endpoint(lines.g), .001)',lw_schema);
-	EXECUTE format($$UPDATE %1$I.lines set multiplier = -1 from %1$I.nodes where st_dwithin(nodes.g,lines.g,.001) and nodes.status = 'BLOCK'$$,lw_schema);
+	EXECUTE format('UPDATE %1$I.__lines l set source = n.lw_id from %1$I.__nodes n where st_equals(n.g, st_startpoint(l.g))',lw_schema);
+	EXECUTE format('UPDATE %1$I.__lines l set target = n.lw_id from %1$I.__nodes n where st_equals(nodes.g, st_endpoint(l.g))',lw_schema);
+	EXECUTE format($$UPDATE %1$I.__lines set multiplier = -1 from %1$I.__nodes where st_intersetcs(nodes.g,lines.g) and nodes.status = 'BLOCK'$$,lw_schema);
 	
 
 END;
-$lw_generate$;/*    Gets the SRID of a livewire enabled schema    */
+$lw_generate$;
+/*    Gets the SRID of a livewire enabled schema    */
 
 CREATE OR REPLACE FUNCTION lw_generateedge(
     lw_schema text,
@@ -338,7 +339,7 @@ BEGIN
   
 
 EXECUTE format(
-  'INSERT INTO %I.lines (lw_table, lw_table_pkid,x1,y1,z1,x2,y2,z2,multiplier,phase,g) %s',
+  'INSERT INTO %I.__lines (lw_table, lw_table_pkid,x1,y1,z1,x2,y2,z2,multiplier,phase,g) %s',
   lw_schema,qrytxt
   );
 
@@ -466,12 +467,13 @@ BEGIN
   ni->'phasemap'->>'B', ni->'phasemap'->>'C', srid, ni->>'sourcequery',
   ni->>'blockquery');
    
-  EXECUTE format('INSERT INTO %I.nodes (lw_table, lw_table_pkid, status, phase,g) %s',
+  EXECUTE format('INSERT INTO %I.__nodes (lw_table, lw_table_pkid, status, phase,g) %s',
   lw_schema, qrytxt
   );
 
 END;
-$lw_generatenode$;/*		Gets the SRID of a livewire enabled schema 		*/
+$lw_generatenode$;
+/*		Gets the SRID of a livewire enabled schema 		*/
 
 create or replace function lw_getsrid(in lw_schema text) returns bigint as 
 $$
@@ -499,8 +501,8 @@ DECLARE
   qry text;
   
 BEGIN
-execute format('CREATE SCHEMA %I',lw_schema);
-execute format($$CREATE TABLE %I.lines
+-- execute format('CREATE SCHEMA %I',lw_schema);
+execute format($$CREATE TABLE %I.__lines
                 (
                     lw_table text,
                     lw_table_pkid text NOT NULL,
@@ -515,6 +517,7 @@ execute format($$CREATE TABLE %I.lines
                     z2 double precision,
                     multiplier bigint,
                     phase text,
+                    feederid text,
                     g geometry(LineStringZ,%L),
                     CONSTRAINT phase_check CHECK (phase = ANY (ARRAY['ABC'::text, 'AB'::text, 'AC'::text, 'BC'::text, 'A'::text, 'B'::text, 'C'::text]))
                 )
@@ -522,13 +525,14 @@ execute format($$CREATE TABLE %I.lines
                     OIDS = FALSE
                 )$$,
         lw_schema,lw_srid);
-execute format($$CREATE TABLE %I.nodes
+execute format($$CREATE TABLE %I.__nodes
                 (
                     lw_table text,
                     lw_table_pkid text NOT NULL,
                     lw_id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
                     status text,
                     phase text,
+		    feederid text,
                     g geometry(PointZ,%L),
                     CONSTRAINT phase_check CHECK (phase = ANY (ARRAY['ABC'::text, 'AB'::text, 'AC'::text, 'BC'::text, 'A'::text, 'B'::text, 'C'::text]))
                 )
@@ -536,7 +540,7 @@ execute format($$CREATE TABLE %I.nodes
                     OIDS = FALSE
                 )$$,
         lw_schema,lw_srid);
-execute format('CREATE TABLE %I.livewire
+execute format('CREATE TABLE %I.__livewire
                 (
                     nodes bigint[],
                     edges bigint[]
@@ -555,8 +559,8 @@ execute format('CREATE TABLE %I.%I
                     OIDS = FALSE
                 )',
         lw_schema,lw_schema);
-execute format('CREATE INDEX ON %I.lines USING gist (g)',lw_schema);
-execute format('CREATE INDEX ON %I.nodes USING gist (g)',lw_schema);
+execute format('CREATE INDEX ON %I.__lines USING gist (g)',lw_schema);
+execute format('CREATE INDEX ON %I.__nodes USING gist (g)',lw_schema);
 
 END;
 $lw_initialise$;
@@ -711,7 +715,7 @@ AS $lw_traceall$
   starttime := clock_timestamp();
 
 
-  /*    Verify that this source cannot reach other sources....that would be bad   */
+  /*    Verify all sources cannot reach each other.... that would be bad   */
   qrytxt := $_$
     select count(*) from pgr_dijkstra(
            $$select lw_id  id, source, target, st_length(g) * multiplier   as cost  
@@ -732,57 +736,24 @@ AS $lw_traceall$
 		FROM %I.nodes where status = 'SOURCE'$$;
   for looprec in EXECUTE(format(qrytxt, lw_schema)) LOOP
                 RAISE NOTICE 'SOURCE: % | % of %', looprec.lw_id,looprec.row_number, looprec.count;
-                  timer := clock_timestamp();
+                timer := clock_timestamp();
                 perform lw_redirect(lw_schema,looprec.lw_id::int);
-                RAISE NOTICE '% | Elapsed time is %', clock_timestamp() - timer, clock_timestamp() - starttime;
+                perform lw_tracesource(lw_schema, looprec.lw_id::int, 50000);
+		RAISE NOTICE '% | Elapsed time is %', clock_timestamp() - timer, clock_timestamp() - starttime;
   END LOOP;
 
 
 
-/*
 
+/*
   for looprec in EXECUTE(format(qrytxt, lw_schema)) LOOP
   		RAISE NOTICE 'SOURCE: % | % of %', looprec.lw_id,looprec.row_number, looprec.count; 
 		  timer := clock_timestamp();
   		perform lw_tracesource(lw_schema,looprec.lw_id::int, 50000, False);
 		RAISE NOTICE '% | Elapsed time is %', clock_timestamp() - timer, clock_timestamp() - starttime;
   END LOOP;
-*/  
+  */
 end;
-  
-
-$lw_traceall$;
-
-
-
-CREATE OR REPLACE FUNCTION lw_traceall(
-  lw_schema text,
-  truncate boolean
-	)
-    RETURNS void
-    LANGUAGE 'plpgsql'
-
-    COST 100
-    VOLATILE 
-AS $lw_traceall$
-
-  declare
-   
-   looprec record;
-	 timer timestamptz;
-	 starttime timestamptz;
-  BEGIN
-  starttime := clock_timestamp();
-  for looprec in EXECUTE(format($$
-    select lw_id from %1$I.nodes where status = 'SOURCE'
-    EXCEPT
-    select distinct nodes[1] from %1$I.livewire$$, lw_schema)) LOOP
-  		RAISE NOTICE 'SOURCE: %', looprec.lw_id; 
-		  timer := clock_timestamp();
-  		perform lw_tracesource(lw_schema,looprec.lw_id::int);
-		RAISE NOTICE '% | Elapsed time is %', clock_timestamp() - timer, clock_timestamp() - starttime;
-  END LOOP;
-  end;
   
 
 $lw_traceall$;
@@ -874,7 +845,7 @@ if checkzero = True THEN
       $$select lw_id  id, source, target, st_length(g) * multiplier as cost  
       from %1$I.lines  $$,
       %2$s, 
-      (select array_agg(lw_id) from %1$I.nodes where status = 'SOURCE'),
+      lw_sourcenodes(lw_schema) --select array_agg(lw_id) from %1$I.nodes where status = 'SOURCE'),
       false
     )
   $_$;
@@ -903,7 +874,7 @@ end if;
         	 $$,
         	 array[%2$s]::bigint[],
         	 (select lw_endnodes('%1$s',%2$s,%3$s)),
-        	 false
+        	 true
         	 )
         join %1$I.nodes on lw_id = node
         group by start_vid, end_vid
@@ -1022,4 +993,23 @@ BEGIN
 	END IF;
     
 END;
-$lw_traceupstream$;
+$lw_traceupstream$;CREATE FUNCTION lw_tset()  RETURNS trigger AS $lw_tset$
+
+
+  DECLARE
+
+
+  BEGIN
+    RAISE NOTICE '%', format('%I.%I',TG_TABLE_SCHEMA, TG_TABLE_NAME); 
+    RAISE NOTICE '%', NEW.*;
+    RAISE NOTICE '%', OLD.*;
+
+
+
+
+
+
+
+
+  END;
+$lw_tset$ LANGUAGE plpgsql;
