@@ -13,7 +13,8 @@ DECLARE
   qry text;
   
 BEGIN
--- execute format('CREATE SCHEMA %I',lw_schema);
+execute format('CREATE SCHEMA IF NOT EXISTS %I',lw_schema);
+
 execute format($$CREATE TABLE %I.__lines
                 (
                     lw_table text,
@@ -33,10 +34,8 @@ execute format($$CREATE TABLE %I.__lines
                     g geometry(LineStringZ,%L),
                     CONSTRAINT phase_check CHECK (phase = ANY (ARRAY['ABC'::text, 'AB'::text, 'AC'::text, 'BC'::text, 'A'::text, 'B'::text, 'C'::text]))
                 )
-                WITH (
-                    OIDS = FALSE
-                )$$,
-        lw_schema,lw_srid);
+)$$, lw_schema, lw_srid);
+
 execute format($$CREATE TABLE %I.__nodes
                 (
                     lw_table text,
@@ -48,29 +47,23 @@ execute format($$CREATE TABLE %I.__nodes
                     g geometry(PointZ,%L),
                     CONSTRAINT phase_check CHECK (phase = ANY (ARRAY['ABC'::text, 'AB'::text, 'AC'::text, 'BC'::text, 'A'::text, 'B'::text, 'C'::text]))
                 )
-                WITH (
-                    OIDS = FALSE
-                )$$,
-        lw_schema,lw_srid);
+)$$, lw_schema, lw_srid);
+
 execute format('CREATE TABLE %I.__livewire
                 (
                     nodes bigint[],
                     edges bigint[]
                 )
-                WITH (
-                    OIDS = FALSE
-                )',
-        lw_schema);
+)', lw_schema);
+
 execute format('CREATE TABLE %I.%I
                 (
                     tablename text PRIMARY KEY,
                     tabletype text,
                     tableconfig json
                 )
-                WITH (
-                    OIDS = FALSE
-                )',
-        lw_schema,lw_schema);
+)', lw_schema, lw_schema);
+
 execute format('CREATE INDEX ON %I.__lines USING gist (g)',lw_schema);
 execute format('CREATE INDEX ON %I.__nodes USING gist (g)',lw_schema);
 
