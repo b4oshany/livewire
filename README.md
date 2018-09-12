@@ -15,6 +15,7 @@ make && sudo make install.
 ```
 #### Note the above command fails due to pgxs cannot be found, run the commands below, then re-run the make commands above. 
 ```shell
+sudo apt-get install postgresql-server-dev-all
 sudo apt-get install postgresql-common
 ```
 
