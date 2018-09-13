@@ -5,6 +5,29 @@
 
 LiveWire is a postgresql extension that makes managing electrical distribution data painless. It provides wrapper functions around pgrouting to generate a pre cached routing network to make answering the most pertinent questions that electrical distribution engineers have.
 
+## Requirements Dependencies
+
+- Postgresql 10
+- Postgres PGXS extension
+- Postgres Postgis extension
+
+### Setup dependencies
+
+#### Installing Postgres PGXS
+```shell
+sudo apt-get install postgresql-server-dev-all
+sudo apt-get install postgresql-common
+```
+
+#### Installing Gdal and Postgis
+```
+sudo apt-get install postgresql-server-dev-all -y
+sudo apt-get install postgresql-common -y
+sudo apt-get install postgresql-10-postgis-2.4 -y
+sudo apt-get install postgresql-10-postgis-scripts -y
+sudo apt-get install postgis -y
+sudo apt-get install postgresql-10-pgrouting -y
+```
 
 ## Installation
 
@@ -13,15 +36,12 @@ Run:
 ``` shell
 make && sudo make install
 ```
-#### Note: if the above command failed due to pgxs cannot be found, run the commands below, then re-run the make commands above. 
-```shell
-sudo apt-get install postgresql-server-dev-all
-sudo apt-get install postgresql-common
-```
 
-In the database that you want to enable LiveWire in run:
+In the database that you want to enable LiveWire in run as a db superuser:
 
 ``` SQL
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
 CREATE EXTENSION livewire;
 ```
 ## Usage
