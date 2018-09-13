@@ -5,7 +5,7 @@
 
 LiveWire is a postgresql extension that makes managing electrical distribution data painless. It provides wrapper functions around pgrouting to generate a pre cached routing network to make answering the most pertinent questions that electrical distribution engineers have.
 
-## Requirements Dependencies
+## Requirements and Dependencies
 
 - Postgresql 10
 - Postgres PGXS extension
